@@ -6,36 +6,43 @@ import os
 # 1. Page Customization
 st.set_page_config(page_title="Kiara AI", page_icon="🎙️", layout="centered")
 
-# 🎨 Premium Google Font & Text-Logo Effect CSS
+# 🎨 Premium Font & Perfect Black & White Text-Masking CSS
 st.markdown("""
-    /* Luxury Font Import */
+    <style>
+    /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600&display=swap');
     
-    <style>
     .stApp { background-color: #131314; }
     
-    /* 🌟 അക്ഷരങ്ങൾക്കുള്ളിൽ ലോഗോ വരാനുള്ള മാസ്സ് CSS */
     .logo-text-container {
         text-align: center;
-        margin-top: 25px;
+        margin-top: 30px;
         margin-bottom: 35px;
     }
     
+    /* 🌟 അക്ഷരങ്ങൾക്കുള്ളിൽ പക്കാ ബ്ലാക്ക് ആൻഡ് വൈറ്റ് ലോഗോ വരാനുള്ള ഡിസൈൻ */
     .kiara-logo-title {
-        font-family: 'Cinzel', serif; /* പ്രീമിയം ഫോണ്ട് സ്റ്റൈൽ */
-        font-size: 4.5rem; /* നല്ല വലിപ്പമുള്ള അക്ഷരങ്ങൾ */
+        font-family: 'Cinzel', serif;
+        font-size: 4.5rem; 
         font-weight: 700;
         letter-spacing: 6px;
         display: inline-block;
-        color: transparent; /* അക്ഷരങ്ങളുടെ സ്വന്തം കളർ മാറ്റി സുതാര്യമാക്കുന്നു */
+        
+        /* ആതി തന്ന ലോഗോയുടെ ബാക്ക്ഗ്രൗണ്ട് ഇമേജ് ലിങ്ക് */
         background-image: url('https://i.postimg.cc/mDCHw6fS/1000027547.jpg');
         background-size: cover;
         background-position: center;
-        -webkit-background-clip: text; 
-        background-clip: text;
+        
+        /* അക്ഷരങ്ങളുടെ ഉള്ളിൽ മാത്രം ഇമേജ് ഒതുക്കാൻ */
+        -webkit-background-clip: text !important; 
+        background-clip: text !important;
+        color: transparent !important;
+        
+        /* 🖤🤍 പക്കാ ബ്ലാക്ക് ആൻഡ് വൈറ്റ് ആക്കാനുള്ള ഫിൽട്ടർ */
+        filter: grayscale(100%) brightness(1.2) contrast(1.5) !important;
     }
     
-    /* Clean Chat Box (No Avatars) */
+    /* Clean Chat Box */
     .stChatMessage { 
         background-color: #1E1F20 !important;
         border-radius: 16px !important; 
@@ -55,14 +62,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# മുകളിൽ 'KIARA' എന്ന അക്ഷരങ്ങളിൽ ലോഗോ സെറ്റ് ചെയ്യുന്നു
+# മുകളിൽ 'KIARA' ടെക്സ്റ്റ് കാണിക്കുന്നു
 st.markdown("""
     <div class="logo-text-container">
         <div class="kiara-logo-title">KIARA</div>
     </div>
 """, unsafe_allow_html=True)
 
-# Groq API Key സെറ്റിങ്സ്
+# 🔑 Groq API Key സെറ്റിങ്സ്
 GROQ_API_KEY = "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"
 
 if not GROQ_API_KEY:

@@ -1,16 +1,7 @@
 import os
-import subprocess
-import sys
-
-# 🛠️ Auto-install gTTS library if missing
-try:
-    from gtts import gTTS
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gtts"])
-    from gtts import gTTS
-
 import streamlit as st
 from groq import Groq
+from gtts import gTTS
 
 # 1. Page Customization & Title
 st.set_page_config(page_title="Kiara AI", page_icon="🎙️", layout="centered")

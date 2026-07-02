@@ -50,16 +50,24 @@ st.markdown("""
 # 🔑 Groq API Key
 GROQ_API_KEY = "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"
 
-# 🖼️ നീ തന്ന ആനിമേഷൻ ലോഗോ ലിങ്ക് ആക്കിയത്:
-LOGO_URL = "https://i.postimg.cc/mDCHw6fS/1000027547.jpg"
+# 🖼️ GitHub-ൽ അപ്‌ലോഡ് ചെയ്ത 'logo.jpg' നമ്മൾ ഇവിടെ നേരിട്ട് വിളിക്കുന്നു:
+LOGO_PATH = "logo.jpg"
 
 # മുകളിലെ ലോഗോയും പേരും കാണിക്കുന്ന ഭാഗം
-st.markdown(f"""
-    <div class="header-container">
-        <img src="{LOGO_URL}" width="120" style="border-radius: 50%; border: 2px solid #303132;">
-        <div class="main-title">Kiara</div>
-    </div>
-""", unsafe_allow_html=True)
+if os.path.exists(LOGO_PATH):
+    st.markdown(f"""
+        <div class="header-container">
+            <img src="data:image/jpeg;base64,{st.image(LOGO_PATH, width=120)}" style="display:none;">
+        </div>
+    """, unsafe_allow_html=True)
+    # Streamlit-ന്റെ സ്വന്തം ഫീച്ചർ ഉപയോഗിച്ച് ലോഗോ സെന്ററിൽ കാണിക്കുന്നു
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.image(LOGO_PATH, width=120)
+    st.markdown('<div style="text-align:center;" class="main-title">Kiara</div><br>', unsafe_allow_html=True)
+else:
+    # ഫോട്ടോ ലോഡ് ആയില്ലെങ്കിൽ വെറും പേര് മാത്രം കാണിക്കാൻ
+    st.markdown('<div style="text-align:center;" class="main-title">Kiara</div><br>', unsafe_allow_html=True)
 
 if not GROQ_API_KEY:
     st.warning("🔑 Please add your Groq API Key!")

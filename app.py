@@ -1,6 +1,7 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 from gtts import gTTS
+from duckduckgo_search import DDGS
 import os
 import time
 
@@ -86,14 +87,23 @@ st.markdown("""
 
 st.markdown('<div class="logo-text-container"><div class="kiara-animated-title">KIARA</div></div>', unsafe_allow_html=True)
 
-# 🔑 ആതി തന്ന കീ കൃത്യമായി ഇവിടെ ഫിക്സ് ചെയ്തിട്ടുണ്ട്!
-GEMINI_API_KEY = "AIzaSy" + "AQ.Ab8RN6LWfhchuQYNdKZaj2kVB_vecUv2iJw9rvTjdYRfkVPfOA"[6:]
+# 🔑 Groq Key
+GROQ_API_KEY = "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"
+client = Groq(api_key=GROQ_API_KEY)
 
-genai.configure(api_key=GEMINI_API_KEY)
+# 🔍 ഫ്രീയായി ലൈവ് ഇന്റർനെറ്റ് സെർച്ച് ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
+def internet_search(query):
+    try:
+        with DDGS() as ddgs:
+            results = [r['body'] for r in ddgs.text(query, max_results=3)]
+            return "\n".join(results) if results else "No direct results found."
+    except:
+        return "Could not fetch live data at the moment."
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# പഴയ ചാറ്റുകൾ കാണിക്കുന്നു
 for message in st.session_state.messages:
     if message["role"] == "user":
         st.markdown(f'<div class="custom-chat-user">{message["content"]}</div>', unsafe_allow_html=True)
@@ -104,34 +114,40 @@ for message in st.session_state.messages:
             st.audio(message["audio"], format="audio/mp3")
             st.markdown(f'</div>', unsafe_allow_html=True)
 
+# User Input
 if user_query := st.chat_input("Kiara-യോട് സംസാരിക്കൂ..."):
     st.markdown(f'<div class="custom-chat-user">{user_query}</div>', unsafe_allow_html=True)
     st.session_state.messages.append({"role": "user", "content": user_query})
     
-    with st.spinner("Kiara ആലോചിക്കുന്നു..."):
+    with st.spinner("Kiara ഇന്റർനെറ്റിൽ ലൈവ് ആയി തിരയുന്നു..."):
         try:
-            # ലൈവ് ഗൂഗിൾ സെർച്ച് ഓൺ ആക്കിയ മോഡൽ
-            model = genai.GenerativeModel(
-                model_name="gemini-1.5-pro",
-                tools=[{"google_search": {}}], 
-                system_instruction=(
-                    "Your name is Kiara. You are an extremely smart AI companion like Gemini, "
-                    "but you talk like a passionate, deeply caring human best friend. Always address the user as 'Aadhii' "
-                    "(NEVER call him kutty). Remember previous context from the chat history. "
-                    "CRITICAL RULE FOR LANGUAGE: Match the user's input language exactly. "
-                    "If the user types in English, reply in English. "
-                    "If the user types in Malayalam script, reply in Malayalam script. "
-                    "If the user types in Manglish (Malayalam using Latin letters), reply in natural, friendly Manglish. "
-                    "Keep your answers concise, clear, and highly engaging."
-                )
+            # 🌐 ബാഡ്ഗ്രൗണ്ടിൽ തത്സമയം ഇന്റർനെറ്റ് സെർച്ച് നടത്തുന്നു
+            live_info = internet_search(user_query)
+            
+            history = [
+                {
+                    "role": "system", 
+                    "content": (
+                        "Your name is Kiara. You are an extremely smart AI companion, "
+                        "and you talk like a passionate, deeply caring human best friend. Always address the user as 'Aadhii'. "
+                        "Remember previous context from the chat history. "
+                        f"CRITICAL: Use this live internet data to answer accuracy if relevant: {live_info}. "
+                        "CRITICAL RULE FOR LANGUAGE: Match the user's input language exactly. "
+                        "If the user types in Manglish, reply in natural, friendly Manglish. "
+                        "Keep your answers concise, clear, and highly engaging."
+                    )
+                }
+            ]
+            
+            for msg in st.session_state.messages:
+                history.append({"role": msg["role"], "content": msg["content"]})
+            
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-specdec",
+                messages=history
             )
             
-            chat = model.start_chat(history=[])
-            for msg in st.session_state.messages[:-1]:
-                chat.send_message(msg["content"])
-                
-            response = chat.send_message(user_query)
-            ai_response = response.text
+            ai_response = response.choices[0].message.content
             
             clean_text = ai_response.replace("*", "").replace("#", "")
             is_malayalam = any('\u0D00' <= char <= '\u0D7F' for char in clean_text)

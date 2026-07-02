@@ -1,58 +1,132 @@
+import os
+import subprocess
+import sys
+
+# 🛠️ Auto-install gTTS library if missing
+try:
+    from gtts import gTTS
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "gtts"])
+    from gtts import gTTS
+
 import streamlit as st
 from groq import Groq
 
-# Page Customization (Just Kiara!)
+# 1. Page Customization & Title
 st.set_page_config(page_title="Kiara AI", page_icon="🎙️", layout="centered")
 
-# Custom CSS for Alexa Premium Interface
+# 🎨 Gemini Premium Layout CSS (Dark Velvet Background & Premium Text UI)
 st.markdown("""
     <style>
-    .stApp { background-color: #0B0E14; }
-    h1 { color: #00A8E8; font-family: 'Poppins', sans-serif; text-align: center; font-size: 3rem; }
-    .stChatMessage { border-radius: 20px; padding: 12px; margin-bottom: 10px; }
-    .stChatInput { border-radius: 25px; }
+    /* Main Background */
+    .stApp { 
+        background-color: #131314; 
+    }
+    
+    /* Header/Title Styling */
+    h1 { 
+        color: #E3E3E3; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center; 
+        font-size: 2.8rem; 
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+    
+    /* Chat Messages Box Styling */
+    .stChatMessage { 
+        background-color: #1E1F20 !important;
+        border-radius: 16px !important; 
+        padding: 16px !important; 
+        margin-bottom: 15px !important; 
+        border: none !important;
+        color: #E3E3E3 !important;
+    }
+    
+    /* Text Input Box Customization */
+    .stChatInput { 
+        background-color: #1E1F20 !important;
+        border-radius: 28px !important; 
+        border: 1px solid #303132 !important;
+    }
+    
+    /* Audio Player Customization */
+    audio { 
+        width: 100%; 
+        margin-top: 12px; 
+        border-radius: 8px;
+    }
+    
+    /* Spinner/Loading Text Color */
+    .stSpinner p {
+        color: #A8FFB2 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # 🔑 Groq API Key
 GROQ_API_KEY = "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"
-
 st.title("Kiara")
 
 if not GROQ_API_KEY:
     st.warning("🔑 Please add your Groq API Key!")
     st.stop()
 
-# Initialize Groq Client
 client = Groq(api_key=GROQ_API_KEY)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Displaying old chats
+# Displaying old chats with custom human avatars
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    avatar_icon = "🧑" if message["role"] == "user" else "👩‍🦰"
+    with st.chat_message(message["role"], avatar=avatar_icon):
         st.markdown(message["content"])
+        if "audio" in message:
+            st.audio(message["audio"], format="audio/mp3")
 
-# Text Input
-if user_query := st.chat_input("Type here..."):
-    with st.chat_message("user"):
+# User Input
+if user_query := st.chat_input("Kiara-യോട് സംസാരിക്കൂ..."):
+    with st.chat_message("user", avatar="🧑"):
         st.markdown(user_query)
     st.session_state.messages.append({"role": "user", "content": user_query})
     
-    # AI Response Logic (Using super fast & latest Llama 3.3)
-    with st.chat_message("assistant"):
-        with st.spinner("Kiara is thinking..."):
+    # Kiara's Response
+    with st.chat_message("assistant", avatar="👩‍🦰"):
+        with st.spinner("Kiara is thinking & speaking..."):
             try:
+                # 🧠 Gemini-level Smartness + Best Friend Persona
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[
-                        {"role": "system", "content": "Your name is Kiara. You are an Alexa-like personal AI friend. Chat passionately and friendly in Manglish or English like a human best friend."},
+                        {
+                            "role": "system", 
+                            "content": "Your name is Kiara. You are an extremely smart AI companion, highly knowledgeable and logical like Gemini/ChatGPT, but you talk like a passionate, deeply caring human best friend. Always reply in beautiful Malayalam script or natural Manglish. Keep answers concise, clear, and highly engaging."
+                        },
                         {"role": "user", "content": user_query}
                     ]
                 )
                 ai_response = response.choices[0].message.content
                 st.markdown(ai_response)
-                st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                
+                # 🎙️ Audio Generation (Text to Speech)
+                clean_text = ai_response.replace("*", "").replace("#", "")
+                tts = gTTS(text=clean_text, lang='ml', slow=False)
+                tts.save("response.mp3")
+                
+                with open("response.mp3", "rb") as f:
+                    audio_bytes = f.read()
+                
+                # Play Audio inside the premium UI
+                st.audio(audio_bytes, format="audio/mp3")
+                
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": ai_response,
+                    "audio": audio_bytes
+                })
+                
+                os.remove("response.mp3")
+                
             except Exception as e:
                 st.error(f"Error: {e}")
